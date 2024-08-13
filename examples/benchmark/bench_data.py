@@ -1,12 +1,13 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
     Based on - https://www.unixuser.org/~euske/doc/cdbinternals/pycdb.py.html
 '''
+from functools import reduce
 
 # calc hash value with a given key
 def calc_hash(s):
-    return reduce(lambda h, c: (((h << 5) + h) ^ ord(c)) & 0xffffffffL, s, 5381)
+    return reduce(lambda h, c: (((h << 5) + h) ^ ord(c)) & 0xffffffff, s, 5381)
 
 # cdbmake(filename, hash)
 def cdbmake(f, a):
@@ -23,10 +24,10 @@ def cdbmake(f, a):
         bucket = [[] for i in range(256)]
 
         # write data & make hash
-        for (k, v) in a.iteritems():
+        for (k, v) in a.items():
           fp.write(pack('<LL', len(k), len(v)))
-          fp.write(k)
-          fp.write(v)
+          fp.write(k.encode())
+          fp.write(v.encode())
           h = calc_hash(k)
           bucket[h % 256].append((h, p))
           p += len(k) + len(v) + 8
@@ -53,7 +54,7 @@ def cdbmake(f, a):
             pos_hash += 16 * len(bt)
         return
 
-    fp = file(f, "wb")
+    fp = open(f, "wb")
     write_cdb(fp)
     fp.close()
     return
@@ -61,7 +62,7 @@ def cdbmake(f, a):
 if __name__ == "__main__":
 
     bench = {}
-    for i in xrange(0, 5*1000000, 5):
+    for i in range(0, 5*1000000, 5):
         bench[str(i)] = str(i)
-    print bench['255']
+    print(bench['255'])
     cdbmake("bench.cdb", bench)
